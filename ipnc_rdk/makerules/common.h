@@ -70,33 +70,6 @@ typedef enum {
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(*a))
 #endif
 
-#define _LINUX_OS
-#ifdef  _LINUX_OS
-#define		RT_SUCCESS		(0)
-#define		RT_FAILURE		(-1)
-#define	    RT_NOSPACE      (-2)
-#define     RT_NOESIST      (-3)
-#define     RT_NOACESS      (-4)
-#define     RT_INVILDPOINT  (-5)
-#define     RT_BREAK        (-6)
-#define     RT_EXITED       (-7) 
-#define     RT_RUNING       (-8) 
-#else
-#define		RT_SUCCESS		(0)
-#define		RT_FAILURE		(-1)
-#define	    RT_NOSPACE      (-2)
-#define     RT_NOESIST      (-3)
-#define     RT_NOACESS      (-4)
-#define     RT_INVILDPOINT  (-5)
-#define     RT_BREAK        (-6)
-#define     RT_EXIT         (-7) 
-
-#endif 
-
-
-
-
-
 
 
 

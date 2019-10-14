@@ -19,12 +19,6 @@
 #define Soft_VERSION "1.0.0"
 
 
-// º¯ÊýÉùÃ÷
-void GetCompletePath(int8_t *pszConfigFileName, int8_t *pszWholePath);
-void GetStringContentValue(FILE *fp, int8_t *pszSectionName, int8_t *pszKeyName, int8_t *pszOutput, uint32_t iOutputLen);
-void GetConfigFileStringValue(int8_t *pszSectionName, int8_t *pszKeyName, int8_t *pDefaultVal, int8_t *pszOutput, uint32_t iOutputLen, int8_t *pszConfigFileName);
-uint32_t GetConfigFileIntValue(int8_t *pszSectionName, int8_t *pszKeyName, uint32_t iDefaultVal, int8_t *pszConfigFileName);
-
 volatile SYS_CFG_st gSYS_cfg_para = {0};
 
 #define CFGDBG

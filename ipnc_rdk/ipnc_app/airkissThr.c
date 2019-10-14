@@ -6,10 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <time.h>
-#include <sys/time.h>
-#include <signal.h>
+
+
 #include "pthread.h"
 #include <sys/socket.h>
 #include <linux/wireless.h>
@@ -17,7 +15,7 @@
 #include <arpa/inet.h>
 #include <common.h>
 #include <sysCfg.h>
-
+#include <includes.h>
 #include "airkissThr.h"
 
 #if WIRELESS_EXT <= 11
@@ -76,7 +74,7 @@ void exit_airkiss(void)
 	if(socket_id < 0)
 	{
 		printf("error::Open socket error!\n\n");
-		exit(1);
+		return ;
 	}
 	memset(data, 0x00, 64);
 	strcpy(data,"mangop");
@@ -88,10 +86,10 @@ void exit_airkiss(void)
 	if(ret != 0)
 	{
 		printf("error::stop error\n\n");
-		exit(1);
+		return ;
 	}
 	close(socket_id);
-	exit(1);
+	return ;
 }
 
 
@@ -122,14 +120,14 @@ void *airkissThr(void *arg)
 	if(airkiss_init(&akcontext, &config))
 	{
 		printf("airkiss init fail\n");
-		return -1;
+		return OSA_EFAIL;
 	}
 
 	socket_id = socket(AF_INET, SOCK_DGRAM, 0);
 	if(socket_id < 0)
 	{
 	    printf("error::Open socket error!\n");
-		return -1;
+		return -errno;
 	}
 	printf("start monitor mode\n");
 	system("iwpriv apcli0 elian monitor_on");
@@ -147,7 +145,7 @@ void *airkissThr(void *arg)
 		printf("error::start monitor mode\n\n");
 		system("iwpriv apcli0 elian monitor_off");
 		system("iwpriv apcli0 elian stop");
-		return -1;
+		return -errno;
 	}
 
 	signal(SIGALRM, time_callback);//
@@ -191,7 +189,7 @@ void *airkissThr(void *arg)
 				tick.it_interval.tv_usec = 0;
 				if(setitimer(ITIMER_REAL, &tick, NULL) < 0)
 				    printf("Set timer failed!\n");
-				printf("channel locked\n");
+					printf("channel locked\n");
 				}
 				else if(ret == AIRKISS_STATUS_COMPLETE)
 				{
@@ -222,7 +220,7 @@ void *airkissThr(void *arg)
 	if(ret != 0)
 	{
 		printf("error::stop error\n\n");
-		return -1;
+		return -errno;
 	}
 	close(socket_id);
 	if(isGetSSID == True)

@@ -24,6 +24,7 @@ static void *keyChkThr(void* arg)
 	Bool isShortPress = False;
 	Bool isLongPress = False;
 	int cnt = 0, cnt1=0, cnt2 = 0;
+	int ret;
 	setSysState(Sys_State_Run, MDVR_Sys_IDLE);
 	prctl(PR_SET_NAME, (unsigned long)__func__, 0, 0, 0);
 	while(1)
@@ -96,11 +97,20 @@ static void *keyChkThr(void* arg)
 		}
 		else
 		{
-			if(cnt2 > 50)// long press 10s
+			if(cnt2 > 5 && cnt2< 30)
 			{
-				
+				printf("wps short press!!!\r\n");
+				ret = getSysState(Sys_State_Run,NULL);
+				if(ret == MDVR_Sys_IDLE)
+					execTask();
+			}	
+			else if(cnt2 > 50)// long press 10s
+			{
+				printf("wps long press!!!\r\n");
 				/*enter airkiss config net*/
-				enterAirkissConfigNet();
+				ret = getSysState(Sys_State_Run,NULL);
+				if(ret == MDVR_Sys_IDLE)
+					enterAirkissConfigNet();
 			}
 			cnt2 = 0;
 		}

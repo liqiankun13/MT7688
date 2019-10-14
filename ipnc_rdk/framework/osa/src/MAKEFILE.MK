@@ -1,7 +1,7 @@
 
 include $(IPNC_INSTALL_DIR)/makerules/COMMON_HEADER.MK
 
-INCLUDE+= $(OSA_INC)
+INCLUDE+= -I$(OSA_INC)  -I$(GLOBAL_INC)
 
 include $(IPNC_INSTALL_DIR)/makerules/COMMON_FOOTER.MK
 

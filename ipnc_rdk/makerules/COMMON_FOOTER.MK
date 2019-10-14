@@ -51,12 +51,12 @@ depend:
 so: $(OBJS)
 	@echo \# $(MODULE): Linking to .so
 	$(LD) $(LD_OPTS)  -shared -o $(SO_LIB) $(OBJ_DIR)/*.o $(LIBS)
-	@echo "\033[33m# Final shared library $(SO_LIB) !!! \033[0m"	
+	@echo -e "\033[33m# Final shared library $(SO_LIB) !!! \033[0m"	
 	@echo \# 	
 exe:
 	@echo \# $(MODULE): Linking
 	$(LD) $(LD_OPTS) -o$(EXE) $(LIBS)
-	@echo "\033[32m# Final executable $(EXE) !!!	\033[0m"
+	@echo -e "\033[32m# Final executable $(EXE) !!!	\033[0m"
 	@echo \# 
 	
 install:

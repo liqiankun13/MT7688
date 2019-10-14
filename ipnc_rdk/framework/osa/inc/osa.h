@@ -11,14 +11,12 @@ extern "C" {
 #include <string.h>
 #include <signal.h>
 #include <stdio.h>
-
+#include <includes.h>
 
 #define OSA_DEBUG_MODE // enable OSA_printf, OSA_assert
 #define OSA_DEBUG_FILE // enable printf's during OSA_fileXxxx
 #define OSA_PRF_ENABLE // enable profiling APIs
 
-#define OSA_SOK      0  ///< Status : OK
-#define OSA_EFAIL   -1  ///< Status : Generic error
 
 #ifndef _TI_STD_TYPES
 #define _TI_STD_TYPES

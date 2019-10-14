@@ -62,7 +62,6 @@ int main(void)
 	initLogMng();
 	CaptureAllSignal();
 	initSysState();
-	//SYS_initALLCfgPara();
 	Hal_Init();
 	MiscMngInit();
 	SysServiceInit();

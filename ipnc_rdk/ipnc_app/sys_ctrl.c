@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <airkissThr.h>
 #include <display.h>
+#include <timerThr.h>
 
 
 uint8_t wifi_signal_icon[4][24*20*2];
@@ -181,35 +182,109 @@ Bool execReadyTask()
 	}
 	return False; //开启超时
 }
-
-
-Bool execTask()
+void execHeat()
 {
-	int timeOut = 500; //5s如果还不能开启，测提示出错
-	start_MOTOR();//开启陀机
-	while(timeOut --)
+	char text[32];
+	uint8_t *pAddr	= (uint8_t *)malloc(240*216*2);
+	if(pAddr == NULL)
 	{
-		usleep(10000);
-		if(True == getLightState())//检测载玻片是否到位
-		{
-			stop_MOTOR();
-			return True;
-		}
+		LOG_ERR("malloc <%s>\r\n", strerror(errno));
+		return ;
 	}
-	return False; //开启超时
+	GUILoadBmp("/root/res/images/heat.bmp",240, 216,  pAddr);
+	GUIImageDraw(0,25,240,216, pAddr);
+	
+	free(pAddr);
 }
-Bool execTaskStateMachine()
+void execCheck()
 {
-	static int state; 
-		
+	char text[32];
+	uint8_t *pAddr	= (uint8_t *)malloc(240*216*2);
+	if(pAddr == NULL)
+	{
+		LOG_ERR("malloc <%s>\r\n", strerror(errno));
+		return ;
+	}
+	GUILoadBmp("/root/res/images/check.bmp",240, 216,  pAddr);
+	GUIImageDraw(0,25,240,216, pAddr);
+	
+	free(pAddr);
+}
+void execNetAbort()
+{
+	char text[32];
+	uint8_t *pAddr	= (uint8_t *)malloc(240*216*2);
+	if(pAddr == NULL)
+	{
+		LOG_ERR("malloc <%s>\r\n", strerror(errno));
+		return ;
+	}
+	GUILoadBmp("/root/res/images/net_abort.bmp",240, 216,  pAddr);
+	GUIImageDraw(0,25,240,216, pAddr);
+	
+	free(pAddr);
+}
+
+void *taskThr(void *arg)
+{
+	execHeat();//加热执行
+	
+}
+
+static int thrId;
+static int state; 
+static int procId; 
+
+void execTaskStateMachine(void *arg)
+{
+	static int heatCount = 60;
+	char text[32];
+	int ret;
 	switch(state)
 	{
 		case 0:
+			execHeat();
 			state = 1;
 			break;
 		case 1:
+			sprintf(text, "%02d", heatCount);
+			heatCount -- ;
+			GUIDrawText(160,169,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
+			if(heatCount == 0)
+			{
+				ret = getSysState(sys_net_server_link,NULL);
+				if(ret == True)//网络链接ok
+					state = 2;
+				else
+					{
+					state = 3;
+					execNetAbort();
+				}	
+			}
 			break;
 		case 2:
+			execCheck();
+			state = 4;
+			break;
+		case 3://网络异常
+			ret = getSysState(sys_net_server_link,NULL);
+			if(ret == True)
+			{
+				state = 2;
+			}
+			else
+				{
+				
+			}
+			break;
+		case 4://上传图片获取结果
+			state = 5;
+			break;
+		case 5:
+			showReport(True);
+			state = 6;
+			break;
+		case 6:
 			break;
 		default:
 			break;
@@ -217,15 +292,23 @@ Bool execTaskStateMachine()
 	}
 }
 
+Bool execTask()
+{
+	state = 0;
+	procId = RegisterProc(SYS_TIMER_TASK_CONTINUE, 1000, "task", execTaskStateMachine, NULL);
+	return False; //开启超时
+}
+
+
 void func()
 {
 	printf("timer is arrivered\r\n");
-	ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);
+	ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
 
 }
 void startFlashTimerEvent(int timeVal)
 {
-	ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
+	ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);
 	signal(SIGALRM, func); //2s
 	alarm(timeVal);
 }
@@ -241,7 +324,6 @@ void power_Off()
 
 void enterAirkissConfigNet()
 {
-	extern void *airkissThr(void *arg);
 	
 	if(getSysState(Sys_State_Run, NULL)  != MDVR_Sys_IDLE)
 	{
