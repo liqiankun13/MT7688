@@ -214,7 +214,7 @@ enum {
 	sys_dev_Camera,
 };
 
-#define SYS_CFG_PATHNAME "/root/report.ini"
+#define SYS_CFG_PATHNAME "/root/record.ini"
 
 
 void setSysState(int opt, int value);

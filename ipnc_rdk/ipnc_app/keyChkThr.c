@@ -103,6 +103,8 @@ static void *keyChkThr(void* arg)
 				ret = getSysState(Sys_State_Run,NULL);
 				if(ret == MDVR_Sys_IDLE)
 					execTask();
+				else if(ret == MDVR_Sys_AIRKISS)
+					exitAirkissConfigNet();
 			}	
 			else if(cnt2 > 50)// long press 10s
 			{

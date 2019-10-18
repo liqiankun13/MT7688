@@ -38,7 +38,7 @@ static inline void uiDisplayProc()
 	else if(sysState.runState == MDVR_Sys_IDLE)
 	{
 		if(lastSysState.runState == MDVR_Sys_AIRKISS)
-			showAirkissQRcode(False);
+			showRecord(True);
 	}
 	showSysNet(sysState.runState ,sysState.wifiLink.linkState);
 	
@@ -74,12 +74,18 @@ void UIDisplayThrCreat()
 {	
 	extern uint8_t wifi_signal_icon[0][24*20*2];
 	extern uint8_t server_icon[0][24*20*2];
+	extern uint8_t  result_bmp[0][54*18*2];
 	 GUILoadBmp("/root/res/images/wifi-0.bmp",24, 20,  wifi_signal_icon[0]);
 	 GUILoadBmp("/root/res/images/wifi-4.bmp",24, 20,  wifi_signal_icon[1]);
 	 GUILoadBmp("/root/res/images/wifi-3.bmp",24, 20,  wifi_signal_icon[2]);
 	 GUILoadBmp("/root/res/images/wifi-2.bmp",24, 20,  wifi_signal_icon[3]);
 	 GUILoadBmp("/root/res/images/server-0.bmp",24, 20,  server_icon[0]);
 	 GUILoadBmp("/root/res/images/server-1.bmp",24, 20,  server_icon[1]);
+	 GUILoadBmp("/root/res/images/result_0.bmp",56, 18,  result_bmp[0]);
+	 GUILoadBmp("/root/res/images/result_1.bmp",56, 18,  result_bmp[1]);
+	 GUILoadBmp("/root/res/images/result_2.bmp",56, 18,  result_bmp[2]);
+	 GUILoadBmp("/root/res/images/result_3.bmp",56, 18,  result_bmp[3]);
+	
 	// GUILoadBmp("/root/wifi-4.bmp",24, 20,  wifi_signal_icon[4]);
 	 pthread_create(&ThrId, NULL, UIDisplayThr, NULL);
 }

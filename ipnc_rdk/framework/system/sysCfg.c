@@ -355,7 +355,7 @@ void SetStringContentValue(FILE *fp, const char *pszSectionName, const char *psz
 			strncpy(bak, p, 63);
 			//printf("find key [%s] [%s]\n", p, pszInput);
 			//sprintf("%s=%s%s",pszKeyName,pszInput, bak);
-			sprintf(lineArray[i],"%s=%s%s",pszKeyName,pszInput, bak);
+			sprintf(lineArray[i],"%s=%s\r\n",pszKeyName,pszInput, bak);
 			//puts(lineArray[i]);
 			findSection = 2;
 			break;

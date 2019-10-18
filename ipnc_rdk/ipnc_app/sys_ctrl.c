@@ -15,6 +15,8 @@
 
 uint8_t wifi_signal_icon[4][24*20*2];
 uint8_t		server_icon[2][24*20*2];
+volatile uint8_t		result_bmp[4][56*18*2];
+
 void showRecord(Bool isShow)
 {
 	char text[16];
@@ -38,10 +40,10 @@ void showRecord(Bool isShow)
 	GUIDrawText((240-len*12)/2,172,text, LCD_FONT_BIG, LCD_FILL_RED, LCD_FILL_GREEN);
 	free(pAddr);
 	
-	
 }
 void showReport(Bool isShow)
 {
+	char text[16];
 	if(!isShow)
 	{
 		GUICleanScreen(0,25,240,216);
@@ -56,7 +58,26 @@ void showReport(Bool isShow)
 	}
 	GUILoadBmp("/root/res/images/report.bmp",240, 216,  pAddr);
 	GUIImageDraw(0,25,240,216, pAddr);
+	sprintf(text, "%02d", gSYS_cfg_para.report.percent);
+	GUIDrawText(64,74,text, LCD_FONT_MIDLLE, LCD_FILL_WHITE, LCD_FILL_NONE);
+	int result =gSYS_cfg_para.report.result;
+	if( result <4 &&result>=0)
+	{
+		char tmp[32];
+		sprintf(tmp, "/root/res/images/result_%d.bmp", result);
+		GUILoadBmp(tmp,56, 18,  pAddr);
+		GUIImageDraw(120,172,56,18, pAddr);
+	}
+	time_t nowT = time(NULL);		
+	struct tm *tm_now = localtime(&nowT);	
+	
+	sprintf(gSYS_cfg_para.report.date, "%02d#%02d@ %02d:%02d",tm_now->tm_mon+1, tm_now->tm_mday,tm_now->tm_hour,tm_now->tm_min);
+	GUIDrawText(98,197,gSYS_cfg_para.report.date, LCD_FONT_BIG, LCD_FILL_RED, LCD_FILL_GREEN);
 	free(pAddr);
+	SetConfigFileIntValue("report","result",gSYS_cfg_para.report.result,SYS_CFG_PATHNAME);
+	SetConfigFileIntValue("report","Percent",gSYS_cfg_para.report.percent,SYS_CFG_PATHNAME);
+	SetConfigFileStringValue("report","date",gSYS_cfg_para.report.date,SYS_CFG_PATHNAME);
+	
 	
 }
 
@@ -159,7 +180,7 @@ void saveJpeg()
 	time_t nowT = time(NULL);
 	struct tm *tm_now = localtime(&nowT);
 	
-	sprintf(pathName, "/mnt/%04d%02d%02d_%02d%02d%02d.jpg", tm_now->tm_year+1900, tm_now->tm_mon+1, tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec);
+	sprintf(pathName, "/tmp/%04d%02d%02d_%02d%02d%02d.jpg", tm_now->tm_year+1900, tm_now->tm_mon+1, tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec);
 	LOG_INFO("Capture %s\r\n", pathName);
 	save_Picture(saveJpeg_CallBack,pathName);
 }
@@ -237,7 +258,7 @@ static int procId;
 
 void execTaskStateMachine(void *arg)
 {
-	static int heatCount = 60;
+	static int heatCount = 5;
 	char text[32];
 	int ret;
 	switch(state)
@@ -252,6 +273,7 @@ void execTaskStateMachine(void *arg)
 			GUIDrawText(160,169,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
 			if(heatCount == 0)
 			{
+				heatCount = 5;
 				ret = getSysState(sys_net_server_link,NULL);
 				if(ret == True)//网络链接ok
 					state = 2;
@@ -279,6 +301,7 @@ void execTaskStateMachine(void *arg)
 			break;
 		case 4://上传图片获取结果
 			state = 5;
+			saveJpeg();
 			break;
 		case 5:
 			showReport(True);

@@ -15,6 +15,8 @@
 #include <sys/inotify.h>
 #include <includes.h>
 #include <cJSON.h>
+#include <sysCfg.h>
+
 
 
 #define POST_SERVER_URL "http://115.231.64.178:10088/api/predict" 
@@ -50,6 +52,7 @@ unsigned long get_file_size(const char *fileName)
 
  
 
+char imgId[64];
 static size_t req_reply(void *ptr, size_t size, size_t nmemb, void *stream)  
 {  
 	size_t len = size*nmemb;
@@ -60,16 +63,25 @@ static size_t req_reply(void *ptr, size_t size, size_t nmemb, void *stream)
 		printf("%s\r\n", (char *)ptr);
 		return len;
 	}
-	char *rendered = cJSON_Print(root);
-	printf("%s\r\n", rendered);
+	printf("%s\r\n", cJSON_Print(root));
 	int stateCode = cJSON_GetObjectItem(root,"code")->valueint;  
 	if(stateCode == 0) 
 	{
-		cJSON *format = cJSON_GetObjectItem(root,"format"); 
+		cJSON *format = cJSON_GetObjectItem(root,"data"); 
 		if(format)
 		{
-			int ret = cJSON_GetObjectItem(format,"predict_result")->valueint;
-			LOG_INFO("predict_result = %d\r\n", ret);
+			cJSON *pJsonNode;
+			pJsonNode = cJSON_GetObjectItem(format,"predict_percent");
+			if(pJsonNode)
+				gSYS_cfg_para.report.percent = (int)(pJsonNode->valuedouble*100)%100;
+			pJsonNode = cJSON_GetObjectItem(format,"predict_result");
+			if(pJsonNode)
+				gSYS_cfg_para.report.result = pJsonNode->valueint;
+			pJsonNode = cJSON_GetObjectItem(format,"image_id");
+			if(pJsonNode)
+				snprintf(imgId,sizeof(imgId)-1,"%s",pJsonNode->valuestring);
+			
+			LOG_INFO("predict_result =%d %d %s\r\n", gSYS_cfg_para.report.result,gSYS_cfg_para.report.percent,imgId);
 		}
 	}
 	else
@@ -77,7 +89,7 @@ static size_t req_reply(void *ptr, size_t size, size_t nmemb, void *stream)
 		LOG_ERR("%s\r\n", cJSON_GetObjectItem(root,"msg")->valuestring); 
 	}
 	
-	
+	cJSON_Delete(root);
 	return len;
 }  
 
@@ -329,12 +341,15 @@ void uploadPicture(const char *fileName)
 	int ret = sendPostFile(fileName,POST_SERVER_URL);
 	if (ret == -1)
 	{
-		printf("uploadPicture failed\n");
+		LOG_ERR("uploadPicture failed\n");
 		return -1;
 	
 	}
 	else
-		printf("uploadPicture success\n");
+	{
+		LOG_INFO("uploadPicture success\n");
+
+	}
 	return 0;
 }
 int  getResult()//²éÑ¯½á¹û

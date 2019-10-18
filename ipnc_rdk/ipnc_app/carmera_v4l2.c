@@ -201,7 +201,7 @@ int save_Picture(int (*callBack)( const char*, char*,  size_t), const char *path
 	struct v4l2_buffer buf;
 	if(0 > video_fd )
 	{
-		return -1 ; 
+		return OSA_EFAIL; 
 	}
 
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -210,25 +210,20 @@ int save_Picture(int (*callBack)( const char*, char*,  size_t), const char *path
 	if(ret != 0)
 	{
 		perror("dequeue fail");
-		return 0 ; 
+		return OSA_EFAIL; 
 	}
 //	memcpy(buffer , buffers[buf.index].start , buffers[buf.index].length);
 	//saveJpeg("test.jpg",buffers[buf.index].start, buffers[buf.index].length);
 	if(callBack)
 		ret = callBack(pathName, buffers[buf.index].start, buffers[buf.index].length);
-	if(ret < 0)
-	{
-		LOG_ERR("callBack fail");
-		return 0 ;	
-	}
 	ret = ioctl(video_fd , VIDIOC_QBUF , &buf);
 	if(ret != 0)
 	{
 		perror("enqueue fail");
-		return 0 ; 
+		return -1 ; 
 	}
 
-	return buffers[buf.index].length; 
+	return ret; 
 }
 
  

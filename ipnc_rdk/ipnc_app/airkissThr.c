@@ -228,22 +228,23 @@ void *airkissThr(void *arg)
 		char cmd[128] = {0};
 		snprintf(cmd,128,"wifimode apsta %s %s &\r",ak_result.ssid, ak_result.pwd);
 		system(cmd);
+	
+		/*³¬Ê±¼ì²âÍøÂçÁ´½Óok*/
+		uint32_t timeout = 0;
+		do {
+			sleep(1);
+			ret = getSysState(sys_net_server_link,NULL);
+			if(ret)
+			{
+				printf("connect AP OK!!!\r\n");
+				break;
+			}
+			if(++ timeout > 10)
+			{
+				break;
+			}
+		} while(1);
 	}
-	/*³¬Ê±¼ì²âÍøÂçÁ´½Óok*/
-	uint32_t timeout = 0;
-	do {
-		sleep(1);
-		ret = getSysState(sys_net_server_link,NULL);
-		if(ret)
-		{
-			printf("connect AP OK!!!\r\n");
-			break;
-		}
-		if(++ timeout > 10)
-		{
-			break;
-		}
-	} while(1);
 	setSysState(Sys_State_Run, MDVR_Sys_IDLE);
 	return 0;
 }
