@@ -264,6 +264,7 @@ void execTaskStateMachine(void *arg)
 	switch(state)
 	{
 		case 0:
+			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);//开启摄像头补光灯
 			execHeat();
 			state = 1;
 			break;
@@ -302,6 +303,7 @@ void execTaskStateMachine(void *arg)
 		case 4://上传图片获取结果
 			state = 5;
 			saveJpeg();
+			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
 			break;
 		case 5:
 			showReport(True);
@@ -318,8 +320,16 @@ void execTaskStateMachine(void *arg)
 Bool execTask()
 {
 	state = 0;
+	
 	procId = RegisterProc(SYS_TIMER_TASK_CONTINUE, 1000, "task", execTaskStateMachine, NULL);
+	if(procId>0)
+		setSysState(Sys_State_Run,MDVR_Sys_EXE_TASK);
 	return False; //开启超时
+}
+void ExitTask()
+{
+	UnRegisterProc(procId);
+	setSysState(Sys_State_Run,MDVR_Sys_IDLE);
 }
 
 

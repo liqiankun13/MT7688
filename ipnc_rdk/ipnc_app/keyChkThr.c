@@ -43,9 +43,9 @@ static void *keyChkThr(void* arg)
 		}
 		if(isShortPress)
 		{
-			LOG_DBG("key short press!!\r\n");
+			LOG_DBG("power key short press!!\r\n");
 			//start_led(4,1);
-			
+#if 0	
 			startFlashTimerEvent(flashOnTimeArry[nFlashOnTimer]);
 			char text[32];
 			in_addr_t IP_i = net_get_ifaddr("eth0.2");
@@ -60,6 +60,17 @@ static void *keyChkThr(void* arg)
 				sprintf(text,"apcli0 : %s", inet_ntoa(*((struct in_addr*)&IP_i)));
 				GUIDrawText(0,80,text,LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
 			}
+#else
+			ret = getSysState(Sys_State_Run,NULL);
+			if(ret == MDVR_Sys_IDLE && (getSysState(sys_net_server_link,NULL) == True))
+				execTask();
+			else if(ret == MDVR_Sys_EXE_TASK)
+			{
+				ExitTask();
+				sleep(1);//µÈ´ýÍË³ö
+				showRecord(True);
+			}
+#endif		
 			//saveJpeg();
 			isShortPress = False;
 		}
@@ -99,21 +110,32 @@ static void *keyChkThr(void* arg)
 		{
 			if(cnt2 > 5 && cnt2< 30)
 			{
-				printf("wps short press!!!\r\n");
+				LOG_DBG("wps short press!!!\r\n");
 				ret = getSysState(Sys_State_Run,NULL);
-				if(ret == MDVR_Sys_IDLE)
-					execTask();
-				else if(ret == MDVR_Sys_AIRKISS)
+				if(ret == MDVR_Sys_AIRKISS)
 					exitAirkissConfigNet();
+				else if(ret == MDVR_Sys_IDLE)
+				{
+					char text[32];
+					in_addr_t IP_i = net_get_ifaddr("apcli0");
+					if(IP_i > 0)
+					{
+						sprintf(text,"wlan:%s", inet_ntoa(*((struct in_addr*)&IP_i)));
+						GUIDrawText(0,220,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
+					}
+						
+				}
+				
 			}	
 			else if(cnt2 > 50)// long press 10s
 			{
-				printf("wps long press!!!\r\n");
+				LOG_DBG("wps long press!!!\r\n");
 				/*enter airkiss config net*/
 				ret = getSysState(Sys_State_Run,NULL);
 				if(ret == MDVR_Sys_IDLE)
 					enterAirkissConfigNet();
 			}
+			
 			cnt2 = 0;
 		}
 #endif

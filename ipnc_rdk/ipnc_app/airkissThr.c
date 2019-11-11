@@ -158,6 +158,7 @@ void *airkissThr(void *arg)
 	tick.it_value.tv_usec = 100000;//100000;
 	if(setitimer(ITIMER_REAL, &tick, NULL) < 0)
 	    printf("Set timer failed!\n");
+	isExit  = 0;
     while(!isExit)
     {
 		memset(data, 0x00, RX_BUF_SIZE);
