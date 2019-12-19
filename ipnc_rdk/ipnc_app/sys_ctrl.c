@@ -264,7 +264,6 @@ void execTaskStateMachine(void *arg)
 	switch(state)
 	{
 		case 0:
-			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);//开启摄像头补光灯
 			execHeat();
 			state = 1;
 			break;
@@ -302,7 +301,10 @@ void execTaskStateMachine(void *arg)
 			break;
 		case 4://上传图片获取结果
 			state = 5;
+			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);//开启摄像头补光灯
+			usleep(100000);
 			saveJpeg();
+			usleep(50000);
 			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
 			break;
 		case 5:
@@ -342,8 +344,11 @@ void func()
 void startFlashTimerEvent(int timeVal)
 {
 	ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);
-	signal(SIGALRM, func); //2s
-	alarm(timeVal);
+	//RegisterProc(SYS_TIMER_TASK_SINGLE, timeVal, "flash LED", func, NULL);
+	usleep(timeVal*1000);
+	ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
+	printf("timer is arrivered\r\n");
+	
 }
 
 

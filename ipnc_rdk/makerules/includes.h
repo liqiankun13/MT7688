@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <errno.h>
 
+#define debug
 
 #ifdef DEBUG
 #define LOG_INFO(format,...)  \

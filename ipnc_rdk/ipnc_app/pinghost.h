@@ -5,6 +5,7 @@
 #include <includes.h>
 #include <common.h>
 
-Bool isLive(const char* hostname);
+
+Bool isLive(const char *ifname, const char* hostname);
 
 #endif

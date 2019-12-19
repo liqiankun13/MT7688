@@ -15,7 +15,7 @@
 
 
 
-const int flashOnTimeArry[] = {5,10,20,30,40,50,60};
+const int flashOnTimeArry[] = {20,40,80,160,200,400,600,800};
 static int  nFlashOnTimer = 0;
 
 static pthread_t ThrId;
@@ -45,7 +45,7 @@ static void *keyChkThr(void* arg)
 		{
 			LOG_DBG("power key short press!!\r\n");
 			//start_led(4,1);
-#if 0	
+#if 1	
 			startFlashTimerEvent(flashOnTimeArry[nFlashOnTimer]);
 			char text[32];
 			in_addr_t IP_i = net_get_ifaddr("eth0.2");
@@ -80,7 +80,8 @@ static void *keyChkThr(void* arg)
 			isLongPress = False;
 		}
 		usleep(20000);
-		/*if(ipnc_gio_read(GPIO_GATE_DETECT) == GPIO_HIGH)
+#if 1
+		if(ipnc_gio_read(GPIO_GATE_DETECT) == GPIO_HIGH)
 		{
 				cnt1 ++;
 		}
@@ -97,11 +98,33 @@ static void *keyChkThr(void* arg)
 				}
 				char text[16];
 				sprintf(text,"LED %ds", flashOnTimeArry[nFlashOnTimer]);
-				Display_DrawText(0,28,text,FONT12_COVER);
+				GUIDrawText(0,28,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
+				
 			}
 			cnt1 = 0;
-		}*/
-#if 1
+		}
+		if(ipnc_gio_read(GPIO_SYS_KEY_WPS) == GPIO_LOW)
+		{
+			cnt2 ++;
+		}
+		else
+		{
+			if(cnt2 > 5 && cnt2< 30)
+			{
+				LOG_DBG("wps key short press!!\r\n");
+				startFlashTimerEvent(flashOnTimeArry[nFlashOnTimer]);
+			}	
+			else if(cnt2 > 50)// long press 10s
+			{
+				LOG_DBG("wps long press!!!\r\n");
+				/*enter airkiss config net*/
+				ret = getSysState(Sys_State_Run,NULL);
+				if(ret == MDVR_Sys_IDLE)
+					enterAirkissConfigNet();
+			}
+			cnt2 = 0;
+		}
+#else
 		if(ipnc_gio_read(GPIO_SYS_KEY_WPS) == GPIO_LOW)
 		{
 			cnt2 ++;

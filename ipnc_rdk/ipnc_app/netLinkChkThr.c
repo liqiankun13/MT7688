@@ -40,10 +40,19 @@ static void *netLinkChkThr(void* arg)
 		setSysState(sys_net_wireless_wifi,wifi_DB);
 		if(wifi_DB > WIRELESS_RSSI_DISCONMECT)
 		{
-			serverConnetState = isLive(SERVER_HOSTNAME);//需要多次判断
+		#if 1
+			serverConnetState = isLive("apcli0",SERVER_HOSTNAME)==False?isLive("apcli0",SERVER_HOSTNAME):True;//需要多次判断
+		//#else
+			//serverConnetState = isLive(SERVER_HOSTNAME);
+			if(serverConnetState == False)
+			{
+				sleep(1);
+				serverConnetState = isLive("apcli0",SERVER_HOSTNAME);
+			}
+		#endif
 		}
 		setSysState(sys_net_server_link,serverConnetState);
-		sleep(2);
+		sleep(1);
 	}
 	
 }

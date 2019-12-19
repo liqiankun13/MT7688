@@ -77,7 +77,7 @@ int SYS_initALLCfgPara(SYS_CFG_st *CfgPara)
 //	CfgPara->perpDev.isGpsChkTime = GetConfigFileIntValue("Peripheral", "isGpsChkTime", 21, MDVR_CFG_PATHNAME);
 	gDVR_cfg_para.perpDev.nBaud = DVR_UART_4800B;
 
-#endif
+#endif 
 	CfgPara->sysPara.is1thBoot = GetConfigFileIntValue("sys", "is1thBoot", False, SYS_CFG_PATHNAME);
 	
 	GetConfigFileStringValue("report", "date", "2019-01-01 00:00",CfgPara->report.date, sizeof(CfgPara->report.date), SYS_CFG_PATHNAME);
