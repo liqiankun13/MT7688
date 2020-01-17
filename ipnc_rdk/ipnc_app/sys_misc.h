@@ -5,9 +5,12 @@
 
 
 
+void start_bp(int ms, int times);
+
+void start_led(int frq1, int times1, int isHighstop);
 
 
-
+ 
 
 
 

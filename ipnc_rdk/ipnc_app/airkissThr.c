@@ -17,6 +17,8 @@
 #include <sysCfg.h>
 #include <includes.h>
 #include "airkissThr.h"
+#include <display.h>
+
 
 #if WIRELESS_EXT <= 11
 #ifndef SIOCDEVPRIVATE
@@ -201,7 +203,7 @@ void *airkissThr(void *arg)
 				    }
 				    else
 				    {
-				        printf("result ok!ssid is %s , key is %s\n" , ak_result.ssid , ak_result.pwd);
+				        LOG_INFO("result ok!ssid is %s , key is %s %p\n" , ak_result.ssid , ak_result.pwd, ak_result.random);
 					isGetSSID = True;
 					break;
 				    }
@@ -224,34 +226,69 @@ void *airkissThr(void *arg)
 		return -errno;
 	}
 	close(socket_id);
+	char text[32];
 	if(isGetSSID == True)
 	{
 		char cmd[128] = {0};
-		snprintf(cmd,128,"wifimode apsta %s %s &\r",ak_result.ssid, ak_result.pwd);
+		LOG_INFO("connect AP...\r\n");
+		snprintf(cmd,128,"wifimode apsta %s %s &",ak_result.ssid, ak_result.pwd);
 		system(cmd);
-	
-		/*³¬Ê±¼ì²âÍøÂçÁ´½Óok*/
-		uint32_t timeout = 0;
+		sleep(2);
+		uint32_t timeout = 30;
 		do {
+			int len = sprintf(text, "Connect AP %02ds...", timeout);
+			GUIDrawText((240-len*12)/2,220,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
 			sleep(1);
-			ret = getSysState(sys_net_server_link,NULL);
-			if(ret)
+			if(check_assoc("apcli0"))
 			{
-				printf("connect AP OK!!!\r\n");
+				LOG_INFO("connect AP OK!!!\r\n");				
 				break;
 			}
-			if(++ timeout > 10)
+			if(-- timeout == 0)
 			{
+				LOG_WAR("connect AP fail!!!\r\n");
 				break;
 			}
 		} while(1);
+		/*³¬Ê±¼ì²âÍøÂçÁ´½Óok*/
+		LOG_INFO("connect server...\r\n");
+		timeout = 30;
+		do {
+			int len = sprintf(text, "   Get ip %02ds...  ", timeout);
+			LOG_INFO("%s\r\n",text)
+			GUIDrawText((240-len*12)/2,220,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
+			sleep(1);
+			ret = net_get_ifaddr("apcli0");
+			if(ret > 0)
+			{
+				len = sprintf(text, "   Connect AP OK.  ", timeout);
+				GUIDrawText((240-len*12)/2,220,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
+				sleep(1);
+				start_bp(200, 0); //stop flash
+				airkiss_replayRandom(ak_result.random);
+				LOG_INFO("connect server OK!!!\r\n");
+				start_led(1, 1,1); //stop flash
+				
+				break;
+			}
+			if(-- timeout == 0)
+			{
+				LOG_WAR("connect server timeout!!!\r\n");
+				start_led(200, 1,1); //stop flash
+				break;
+			}
+		} while(1);
+	}
+	else
+	{
+		start_led(1, 1,1); //stop flash
 	}
 	setSysState(Sys_State_Run, MDVR_Sys_IDLE);
 	return 0;
 }
 static pthread_t thrId;
 void airKissThrCreat()
-{
+{ 
 	pthread_create(&thrId, NULL, airkissThr, NULL);
 }
 void airKissThrDelete()

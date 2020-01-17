@@ -43,6 +43,7 @@ void GUIDrawText(u16 x, u16 y, const char *text,FontSizeTypeDef fontSize, Corlor
 void  GUICleanScreen(u16 x, u16 y, u16 w,u16 h);
 int GUILoadBmp(char *pathname,uint16_t w,uint16_t h,unsigned char *rect);
 void GUIImageDraw(uint16_t x,uint16_t y,uint16_t w,uint16_t h,uint16_t *rect);
+void  GUIFullScreen(uint16_t x, uint16_t y, uint16_t w,uint16_t h, uint16_t corlor);
 
 
 

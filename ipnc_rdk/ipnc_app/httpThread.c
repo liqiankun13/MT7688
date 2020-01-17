@@ -73,7 +73,7 @@ static size_t req_reply(void *ptr, size_t size, size_t nmemb, void *stream)
 			cJSON *pJsonNode;
 			pJsonNode = cJSON_GetObjectItem(format,"predict_percent");
 			if(pJsonNode)
-				gSYS_cfg_para.report.percent = (int)(pJsonNode->valuedouble*100)%100;
+				gSYS_cfg_para.report.percent = pJsonNode->valueint;
 			pJsonNode = cJSON_GetObjectItem(format,"predict_result");
 			if(pJsonNode)
 				gSYS_cfg_para.report.result = pJsonNode->valueint;

@@ -21,12 +21,16 @@ static int  nFlashOnTimer = 0;
 static pthread_t ThrId;
 static void *keyChkThr(void* arg)
 {
+	int timeOut = 0;
 	Bool isShortPress = False;
 	Bool isLongPress = False;
 	int cnt = 0, cnt1=0, cnt2 = 0;
 	int ret;
+	int len;
 	setSysState(Sys_State_Run, MDVR_Sys_IDLE);
 	prctl(PR_SET_NAME, (unsigned long)__func__, 0, 0, 0);
+	start_bp(20, 1);
+	char text[32];
 	while(1)
 	{
 		if(ipnc_gio_read(GPIO_SYSTEM_KEY) == GPIO_HIGH)
@@ -34,7 +38,8 @@ static void *keyChkThr(void* arg)
 			cnt ++;
 		}
 		else
-		{
+		{	
+			timeOut = 0;
 			if(cnt > 5 && cnt< 30)
 				isShortPress = True;
 			else if(cnt >= 30)
@@ -44,8 +49,8 @@ static void *keyChkThr(void* arg)
 		if(isShortPress)
 		{
 			LOG_DBG("power key short press!!\r\n");
-			//start_led(4,1);
-#if 1	
+			start_bp(20, 1);
+#if 0	
 			startFlashTimerEvent(flashOnTimeArry[nFlashOnTimer]);
 			char text[32];
 			in_addr_t IP_i = net_get_ifaddr("eth0.2");
@@ -62,8 +67,31 @@ static void *keyChkThr(void* arg)
 			}
 #else
 			ret = getSysState(Sys_State_Run,NULL);
-			if(ret == MDVR_Sys_IDLE && (getSysState(sys_net_server_link,NULL) == True))
-				execTask();
+			if(ret == MDVR_Sys_IDLE)
+			{
+				if(getSysState(sys_net_server_link,NULL) == True)
+				{
+					if(ipnc_gio_read(GPIO_LIGHT_DETECT)== GPIO_LOW)
+					{
+						execTask();
+					}
+					else//ÔØ²£Æ¬Ã»ÓÐµ½Î»
+						{
+						setSysState(Sys_State_Run, MDVR_Sys_WARNING);
+						showWarning(1);
+						sleep(2);
+						setSysState(Sys_State_Run, MDVR_Sys_IDLE);
+					}
+				}
+				else//ÍøÂç´íÎó
+				{
+					
+					setSysState(Sys_State_Run, MDVR_Sys_WARNING);
+					showWarning(0);
+					sleep(2);
+					setSysState(Sys_State_Run, MDVR_Sys_IDLE);
+				}
+			}
 			else if(ret == MDVR_Sys_EXE_TASK)
 			{
 				ExitTask();
@@ -74,13 +102,33 @@ static void *keyChkThr(void* arg)
 			//saveJpeg();
 			isShortPress = False;
 		}
+		
 		if(isLongPress)
 		{
-			power_Off();
+			start_bp(200, 1);
+			power_Off(); 
 			isLongPress = False;
 		}
 		usleep(20000);
-#if 1
+	/*	if(ipnc_gio_read(GPIO_LIGHT_DETECT) == GPIO_LOW)
+		{
+			cnt1 ++;
+		}
+		else
+		{
+			
+			timeOut = 0;
+			if(cnt1 > 5 && cnt1< 30)
+			{
+				start_bp(20, 1);
+				LOG_DBG("gate key short press!!\r\n");
+				start_led(8,-1,1);
+				
+			}
+			cnt1 = 0;
+		}
+		*/
+#if 0
 		if(ipnc_gio_read(GPIO_GATE_DETECT) == GPIO_HIGH)
 		{
 				cnt1 ++;
@@ -89,7 +137,6 @@ static void *keyChkThr(void* arg)
 		{
 			if(cnt1 > 5 && cnt1< 30)
 			{
-				start_led(4,1);
 				LOG_DBG("pos key short press!!\r\n");
 				nFlashOnTimer ++;
 				if(nFlashOnTimer>ARRAY_SIZE(flashOnTimeArry)-1)
@@ -131,37 +178,45 @@ static void *keyChkThr(void* arg)
 		}
 		else
 		{
-			if(cnt2 > 5 && cnt2< 30)
+			timeOut = 0;
+			if(cnt2 > 5 && cnt2<= 30)
 			{
+				start_bp(20, 1);
 				LOG_DBG("wps short press!!!\r\n");
 				ret = getSysState(Sys_State_Run,NULL);
 				if(ret == MDVR_Sys_AIRKISS)
 					exitAirkissConfigNet();
 				else if(ret == MDVR_Sys_IDLE)
 				{
-					char text[32];
-					in_addr_t IP_i = net_get_ifaddr("apcli0");
-					if(IP_i > 0)
-					{
-						sprintf(text,"wlan:%s", inet_ntoa(*((struct in_addr*)&IP_i)));
-						GUIDrawText(0,220,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
-					}
+					setSysState(Sys_State_Run, MDVR_Sys_WARNING);
+					showSysInfo();
+					sleep(2);
+					setSysState(Sys_State_Run, MDVR_Sys_IDLE);
+					
 						
 				}
 				
 			}	
 			else if(cnt2 > 50)// long press 10s
 			{
+				start_bp(20, 1);
 				LOG_DBG("wps long press!!!\r\n");
 				/*enter airkiss config net*/
 				ret = getSysState(Sys_State_Run,NULL);
 				if(ret == MDVR_Sys_IDLE)
 					enterAirkissConfigNet();
+					
 			}
 			
 			cnt2 = 0;
 		}
 #endif
+		if(timeOut ++ > 1400)//about 5min
+		{
+			power_Off();
+		}
+			
+
 	}
 }
 void keyChkThrCreat()

@@ -74,7 +74,10 @@ int Init_Dislay()
 void Exit_Dislay()
 {
 	if(pDisplayMem != NULL)
+	{
+		memset(pDisplayMem, _LCD_WIDTH*_LCD_HIGHT*_LCD_BPP/8, 0);
 		munmap(pDisplayMem, _LCD_WIDTH*_LCD_HIGHT*_LCD_BPP/8);
+	}
 	if(fd > 0 )
 		close(fd);
 }
@@ -89,6 +92,17 @@ void  GUICleanScreen(uint16_t x, uint16_t y, uint16_t w,uint16_t h)
 		for(j=0;j<w;j++)
 		{			
 			pDisplayMem[i*_LCD_HIGHT+j+x+y*_LCD_HIGHT] = 0;				
+		}	
+	}
+}
+void  GUIFullScreen(uint16_t x, uint16_t y, uint16_t w,uint16_t h, uint16_t corlor)
+{
+	uint16_t i,j;	
+	for(i=0;i<h;i++)
+	{		
+		for(j=0;j<w;j++)
+		{			
+			pDisplayMem[i*_LCD_HIGHT+j+x+y*_LCD_HIGHT] = corlor;				
 		}	
 	}
 }

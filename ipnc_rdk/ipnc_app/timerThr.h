@@ -17,7 +17,7 @@ typedef struct _timerTask{
 }timerTask;
 typedef struct _taskList{
 	timerTask task;
-	struct taskList *next;
+	struct _taskList *next;
 } taskList;
 
 /** check interval if none task in checking */
@@ -34,8 +34,10 @@ enum {
 
 void timerThrCreat();
 void timerThrDelet();
-int RegisterProc(int mode, uint32_t time,const char *name,timerTaskProc *pfnProc,void *pPrivData);
+int RegisterProc(int mode, uint32_t time,const char *name,timerTaskProc pfnProc,void *pPrivData);
 
+
+void delNode(int procId);
 
 #endif
 

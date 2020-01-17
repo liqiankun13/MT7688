@@ -20,11 +20,9 @@ SRC_PATH   := .
 TARGET     := main_app
 
 ## get all source files
-SRCS         += $(wildcard $(SRC_PATH)/*.c)
-
+SRCS        += $(wildcard $(SRC_PATH)/*.c)
 ## all .o based on all .c
 OBJS        := $(SRCS:.c=.o)
-
 
 ## need libs, add at here
 LIBS := pthread gpio osa system curl m airkiss
@@ -55,7 +53,7 @@ LDFLAGS += $(foreach lib, $(LIBS), -l$(lib))
 build:
 	@echo [CC] $(TARGET)
 	$(COMPILE) -c $(CFLAGS) $(SRCS)
-	$(COMPILE) $(CFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
+	$(COMPILE) $(CFLAGS) -o $(TARGET) $(OBJS)  $(LDFLAGS)
 
 all: clean build
 	

@@ -82,9 +82,10 @@ typedef struct
 	char date[20];
 	int  percent;
 	int result;
+	int  isValid;
 } Check_report_st;
 
-
+ 
 typedef struct 
 {
 	/*video_cfg_st videoPara;
@@ -124,6 +125,7 @@ enum
 	MDVR_Sys_IDLE,
 	MDVR_Sys_MENU,
 	MDVR_Sys_REPLAY,
+	MDVR_Sys_WARNING,
 	MDVR_Sys_AIRKISS,
 	
 	MDVR_Disk_FULL = 20,

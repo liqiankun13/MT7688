@@ -37,9 +37,11 @@ static inline void uiDisplayProc()
 	}
 	else if(sysState.runState == MDVR_Sys_IDLE)
 	{
-		if(lastSysState.runState == MDVR_Sys_AIRKISS)
+		if(lastSysState.runState == MDVR_Sys_AIRKISS || lastSysState.runState == MDVR_Sys_WARNING)
 			showRecord(True);
-	}
+	
+			
+	} 
 	showSysNet(sysState.runState ,sysState.wifiLink.linkState);
 	
 	memcpy(&lastSysState,&sysState,sizeof(sys_state_st));
@@ -54,7 +56,7 @@ static void *UIDisplayThr(void* arg)
 	GUICleanScreen(0, 0, _LCD_WIDTH,_LCD_HIGHT);
 	if(gSYS_cfg_para.sysPara.is1thBoot) //第一次开机
 	{
-		showAirkissQRcode();
+		showWelcom(True);
 		SetConfigFileIntValue("sys","is1thBoot",False,SYS_CFG_PATHNAME);
 	}
 	else //非第一次开机，显示上次检查结果

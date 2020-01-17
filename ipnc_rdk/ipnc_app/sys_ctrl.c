@@ -78,7 +78,6 @@ void showReport(Bool isShow)
 	SetConfigFileIntValue("report","Percent",gSYS_cfg_para.report.percent,SYS_CFG_PATHNAME);
 	SetConfigFileStringValue("report","date",gSYS_cfg_para.report.date,SYS_CFG_PATHNAME);
 	
-	
 }
 
 void showCamera()
@@ -127,6 +126,54 @@ void showAirkissQRcode(Bool isShow)
 	GUILoadBmp("/root/res/images/airKiss.bmp",160, 158,  pAddr);
 	GUIImageDraw(41,65,160,158, pAddr);
 	free(pAddr);
+}
+void showWelcom(Bool isShow)
+{
+	if(!isShow)
+	{
+		GUICleanScreen(0,25,240,216);
+		return ;
+	}
+
+	uint8_t *pAddr  = (uint8_t *)malloc(240*216*2);
+	if(pAddr == NULL)
+	{
+		LOG_ERR("malloc <%s>\r\n", strerror(errno));
+		return ;
+	}
+	GUILoadBmp("/root/res/images/welcom.bmp",240, 216,  pAddr);
+	GUIImageDraw(0,25,240,216, pAddr);
+	free(pAddr);
+}
+void showWarning(int select)
+{
+	uint8_t *pAddr  = (uint8_t *)malloc(240*216*2);
+	char *path = NULL;
+	if(select == 0)
+		path = "/root/res/images/net_err.bmp";
+	else if(select == 1)
+		path = "/root/res/images/slide_err.bmp";
+	else
+		path = "/root/res/images/welcom.bmp";
+	if(pAddr == NULL)
+	{
+		LOG_ERR("malloc <%s>\r\n", strerror(errno));
+		return ;
+	}
+	GUILoadBmp(path,240, 216,  pAddr);
+	GUIImageDraw(0,25,240,216, pAddr);
+	free(pAddr);
+}
+void showSysInfo()
+{
+	char text[32];
+	
+	//GUIFullScreen(0,25,240,216, RGB(41,40,25));
+	sprintf(text,"version:%s", "1.2");
+	GUIDrawText(8,100,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
+	in_addr_t IP_i = net_get_ifaddr("apcli0");
+	sprintf(text,"wlan:%s", inet_ntoa(*((struct in_addr*)&IP_i)));
+	GUIDrawText(8,130,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
 }
 
 void showSysTime()
@@ -188,7 +235,7 @@ void saveJpeg()
 
 
 /*这是一个使用前准备操作*/
-Bool execReadyTask()
+/*Bool execReadyTask()
 {
 	int timeOut = 500; //5s如果还不能开启，测提示出错
 	start_MOTOR();//开启陀机
@@ -202,7 +249,7 @@ Bool execReadyTask()
 		}
 	}
 	return False; //开启超时
-}
+}*/
 void execHeat()
 {
 	char text[32];
@@ -258,13 +305,18 @@ static int procId;
 
 void execTaskStateMachine(void *arg)
 {
-	static int heatCount = 5;
+	static int heatCount = 50, retryCount;
 	char text[32];
 	int ret;
+	LOG_INFO("\r\n");
 	switch(state)
 	{
 		case 0:
+			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);//开启摄像头补光灯
+			ipnc_gio_write(GPIO_HEAT_EN,GPIO_HIGH);
 			execHeat();
+			heatCount = 50;
+			gSYS_cfg_para.report.isValid = False;
 			state = 1;
 			break;
 		case 1:
@@ -273,7 +325,7 @@ void execTaskStateMachine(void *arg)
 			GUIDrawText(160,169,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
 			if(heatCount == 0)
 			{
-				heatCount = 5;
+				ipnc_gio_write(GPIO_HEAT_EN,GPIO_LOW);//停止加热
 				ret = getSysState(sys_net_server_link,NULL);
 				if(ret == True)//网络链接ok
 					state = 2;
@@ -281,6 +333,7 @@ void execTaskStateMachine(void *arg)
 					{
 					state = 3;
 					execNetAbort();
+					retryCount = 30;
 				}	
 			}
 			break;
@@ -295,21 +348,40 @@ void execTaskStateMachine(void *arg)
 				state = 2;
 			}
 			else
+			{
+				sprintf(text, "retry %02d ...", retryCount);
+				retryCount --;
+				GUIDrawText(160,169,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
+				if(retryCount == 0)//30s后链接不到网络退出
 				{
-				
+					state = 5;
+				}
 			}
 			break;
 		case 4://上传图片获取结果
 			state = 5;
-			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);//开启摄像头补光灯
-			usleep(100000);
+			usleep(1000000);
 			saveJpeg();
-			usleep(50000);
+			usleep(100000);
 			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
 			break;
 		case 5:
-			showReport(True);
+			start_bp(200,1);
+			if(gSYS_cfg_para.report.isValid)
+			{
+				showReport(True);
+			}
+			else
+				{
+				showReport(True);
+				int len = sprintf(text,"Check Error.");
+				GUIDrawText((240-len*12)/2,74,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
+			}
 			state = 6;
+			sleep(1);
+			start_bp(200,1);
+			sleep(1);
+			start_bp(200,1);
 			break;
 		case 6:
 			break;
@@ -318,18 +390,22 @@ void execTaskStateMachine(void *arg)
 	
 	}
 }
-
+ 
 Bool execTask()
 {
 	state = 0;
 	
 	procId = RegisterProc(SYS_TIMER_TASK_CONTINUE, 1000, "task", execTaskStateMachine, NULL);
 	if(procId>0)
-		setSysState(Sys_State_Run,MDVR_Sys_EXE_TASK);
+	{
+		start_led(2,-1,1); //slow flash
+		setSysState(Sys_State_Run,MDVR_Sys_EXE_TASK);
+	}
 	return False; //开启超时
 }
 void ExitTask()
 {
+	start_led(1,1,1);
 	UnRegisterProc(procId);
 	setSysState(Sys_State_Run,MDVR_Sys_IDLE);
 }
@@ -355,7 +431,7 @@ void startFlashTimerEvent(int timeVal)
 void power_Off()
 {
 	LOG_INFO("System is ready poweroff!!!\r\n");
-	system("sync");
+	sync();
 	sleep(1);
 	ipnc_gio_write(GPIO_SYS_KEY_POWEROFF,GPIO_LOW);
 }
@@ -368,14 +444,13 @@ void enterAirkissConfigNet()
 		LOG_WAR("\r\n");
 		return ;
 	}
-	//start_led(8,-1); //fast flash
+	start_led(8,-1, 1); //fast flash
 	setSysState(Sys_State_Run, MDVR_Sys_AIRKISS);
 	airKissThrCreat();
 }
 void exitAirkissConfigNet()
 {
 	airKissThrDelete();
-	//start_led(1, 0); //stop flash
 	setSysState(Sys_State_Run, MDVR_Sys_IDLE);
 }
 

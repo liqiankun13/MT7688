@@ -48,7 +48,7 @@ Bool isLive(const char *ifname, const char* hostname)
 {
 
     char    sendpacket[64], recvpacket[256];//4096  
-    int    datalen = 56; 
+    int    datalen = 56, ret; 
 	struct ifreq ifr;
 	struct timeval timeout = {5,0};
 	struct sockaddr_in from;
@@ -85,7 +85,7 @@ Bool isLive(const char *ifname, const char* hostname)
     icmp->icmp_cksum = cal_chksum((unsigned short *)icmp, packsize);
 
     if(sendto(sockfd, sendpacket, packsize, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0){
-        LOG_ERR("sendto error");
+        LOG_ERR("sendto error\r\n");
 		goto Err_Handler;
     }
   
@@ -93,11 +93,11 @@ Bool isLive(const char *ifname, const char* hostname)
     FD_ZERO(&set);
     FD_SET(sockfd, &set);
     //read , write;
-    int retval = select(sockfd+1, &set, NULL, NULL, &timeout);
-    if(retval == -1) {
+    ret = select(sockfd+1, &set, NULL, NULL, &timeout);
+    if(ret == -1) {
          LOG_ERR("select error %s\n", strerror(errno));
 		 goto Err_Handler;
-    }else if(retval == 0 ) {
+    }else if(ret == 0 ) {
     	
         goto Err_Handler;
     }else{

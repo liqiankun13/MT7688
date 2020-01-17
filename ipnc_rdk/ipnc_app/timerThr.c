@@ -117,7 +117,7 @@ void timerThrDelet()
 	mode 
 	time£º ms min£º50ms
 */
-int RegisterProc(int mode, uint32_t time,const char *name,timerTaskProc *pfnProc,void *pPrivData)
+int RegisterProc(int mode, uint32_t time,const char *name,timerTaskProc pfnProc,void *pPrivData)
 {
 	struct timespec stCurTime;
 	

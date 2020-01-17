@@ -9,6 +9,7 @@
 #include <common.h>
 #include <sys_misc.h>
 #include <sysCfg.h>
+#include <display.h>
 
 
 static Bool  isExit = False;
@@ -53,8 +54,41 @@ void CaptureAllSignal()
 	signal(SIGFPE, SignalHander); 
 	signal(SIGINT, SignalHander); 
 }
-
-
+#define _download_ 0
+#if _download_
+int main(void)
+{
+	char text[64];
+	Init_Dislay();
+	sprintf(text, "check upgrage...");
+	GUIDrawText(20,100,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_BLACK);
+	sleep(1);
+	download_file("http://115.231.64.178:10088/app.tar.bz2", "app.tar.bz2");
+	if(access("app.tar.bz2", F_OK|R_OK) == 0)
+	{
+		sprintf(text, " unzip app. . .");
+		GUIDrawText(20,100,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_BLACK);
+		system("tar xvf app.tar.bz2");
+		system("chmod a+x * -R");
+		sleep(1);
+		sprintf(text, " upgrage ok");
+		GUIDrawText(20,100,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_BLACK);
+		sleep(1);
+		//unlink("app.tar.bz2");
+	}
+	else
+		{
+		sprintf(text, "upgrage fail...");
+		GUIDrawText(20,100,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_BLACK);
+		sleep(1);
+		Exit_Dislay();
+		return -1;
+	}
+	Exit_Dislay();
+	return 0;
+	
+}
+#else
 int main(void)
 {
 	SYS_initALLCfgPara(&gSYS_cfg_para);
@@ -76,4 +110,6 @@ int main(void)
 	Hal_Exit();
 	return 0;
 
+ 
 }
+#endif

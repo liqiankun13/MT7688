@@ -45,7 +45,7 @@ HARDWARE_REVISION := REV2
 ################################################################################
 
 BASE_INSTALL_DIR    := $(shell pwd)
-EXTERN_OPENLIB      :=/home/lqk/openlib/lib
+EXTERN_OPENLIB      :=/home/lqk/workspace/openlib/lib
 
 # Defining the install base directory for IPNC RDK
 IPNC_INSTALL_DIR    := $(BASE_INSTALL_DIR)/ipnc_rdk
@@ -53,7 +53,7 @@ TOOLS_INSTALL_DIR   := $(BASE_INSTALL_DIR)/ti_tools
 
 # Defining the build tools directory for IPNC RDK
 BUILD_TOOL_DIR      := $(TOOLS_INSTALL_DIR)/linux_devkit
-BUILD_TOOL_PREFIX   := /home/lqk/MT7688/openwrt_widora/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/bin/mipsel-openwrt-linux-uclibc-
+BUILD_TOOL_PREFIX   := /home/lqk/workspace/MT7688/openwrt_widora/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/bin/mipsel-openwrt-linux-uclibc-
 
 
 # The directory that points to the Linux Support Package
@@ -68,7 +68,7 @@ TARGET_FS            := $(FILESYS_INSTALL_DIR)/filesys
 
 # The directory that points IPNC RDK source code
 IPNC_DIR          := $(IPNC_INSTALL_DIR)/ipnc_app
-TFTP_HOME         := /home/lqk/tftpboot
+TFTP_HOME         := /home/lqk/workspace/tftpboot
 FRAMEWORK_DIR	  := $(IPNC_INSTALL_DIR)/framework
 BUILD_INSTALL_DIR := $(IPNC_INSTALL_DIR)/build
 

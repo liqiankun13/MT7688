@@ -6,7 +6,7 @@
 /* 光敏 */
 #define GPIO_LIGHT_DETECT 39
 /* 陀机使能 */
-#define GPIO_MOTOR_EN     26
+
 /* 加热 */
 #define GPIO_HEAT_EN    19
 /* 补光灯  */
@@ -29,8 +29,8 @@
 
 
 
-#define start_MOTOR() ipnc_gio_write(GPIO_MOTOR_EN, 1)
-#define stop_MOTOR()  ipnc_gio_write(GPIO_MOTOR_EN, 0)
+//#define start_MOTOR() ipnc_gio_write(GPIO_MOTOR_EN, 1)
+//#define stop_MOTOR()  ipnc_gio_write(GPIO_MOTOR_EN, 0)
 
 #define getLightState() ipnc_gio_read(GPIO_LIGHT_DETECT)
 #define getGateState() ipnc_gio_read(GPIO_GATE_DETECT)
@@ -47,7 +47,9 @@ void exitAirkissConfigNet();
 
 
 void saveJpeg();
-
+void showCamera();
+void showWarning(int select);
+void showSysTime();
 
 
 
