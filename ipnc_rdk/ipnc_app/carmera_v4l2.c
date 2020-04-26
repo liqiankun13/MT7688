@@ -193,7 +193,7 @@ int Stop_Cameral(void)
 
 }
 
-
+#if 0
 int save_Picture(int (*callBack)( const char*, char*,  size_t), const char *pathName)
 {
 
@@ -209,6 +209,7 @@ int save_Picture(int (*callBack)( const char*, char*,  size_t), const char *path
 	ret = ioctl(video_fd , VIDIOC_DQBUF , &buf);
 	if(ret != 0)
 	{
+		gSYS_cfg_para.report.errCode = OSA_EIO;
 		perror("dequeue fail");
 		return OSA_EFAIL; 
 	}
@@ -219,11 +220,43 @@ int save_Picture(int (*callBack)( const char*, char*,  size_t), const char *path
 	ret = ioctl(video_fd , VIDIOC_QBUF , &buf);
 	if(ret != 0)
 	{
+		gSYS_cfg_para.report.errCode = OSA_EIO;
 		perror("enqueue fail");
 		return -1 ; 
 	}
 
 	return ret; 
 }
+#else
+int save_Picture(int (*callBack)( const char*, char*,  size_t), const char *pathName)
+{
 
- 
+	int ret ;
+	struct v4l2_buffer buf;
+	int count = 2;
+	while(count --)
+	{
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory = V4L2_MEMORY_MMAP;
+		ret = ioctl(video_fd , VIDIOC_DQBUF , &buf);
+		if(ret != 0)
+		{
+			perror("dequeue fail");
+			return 0 ; 
+		}
+	//	memcpy(buffer , buffers[buf.index].start , buffers[buf.index].length);
+		//saveJpeg("test.jpg",buffers[buf.index].start, buffers[buf.index].length);
+		
+		ret = ioctl(video_fd , VIDIOC_QBUF , &buf);
+		if(ret != 0)
+		{
+			perror("enqueue fail");
+			return 0 ; 
+		}
+
+	}
+	if(callBack)
+		callBack(pathName, buffers[buf.index].start, buffers[buf.index].length);
+	return ret; 
+}
+#endif

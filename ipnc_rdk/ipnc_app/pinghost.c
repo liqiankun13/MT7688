@@ -54,7 +54,17 @@ Bool isLive(const char *ifname, const char* hostname)
 	struct sockaddr_in from;
 	int fromlen = sizeof(struct sockaddr_in);
 	
-	
+	/*
+	if(inet_addr(url) == INADDR_NONE)
+	{
+		hostname = gethostbyname(url);
+		if(hostname== NULL)
+		{
+			LOG_ERR("gethostbyname error\r\n");
+			return 0;
+		}
+	}
+	*/
     int sockfd;
     if((sockfd = socket(AF_INET, SOCK_RAW,IPPROTO_ICMP)) < 0) {
          LOG_ERR("socket error\r\n");

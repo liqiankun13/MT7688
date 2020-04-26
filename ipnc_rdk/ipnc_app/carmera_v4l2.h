@@ -20,7 +20,7 @@
 
  
 
-#define   COUNT  3
+#define   COUNT  1
 
 #define    WIDTH   720
 #define    HIGHT   560

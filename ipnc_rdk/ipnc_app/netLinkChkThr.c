@@ -10,7 +10,7 @@
 #include <netLinkChkThr.h>
 
 
-#define SERVER_HOSTNAME "115.231.64.178"
+#define SERVER_HOSTNAME "139.129.90.163"
 
 static pthread_t ThrId;
 static void *netLinkChkThr(void* arg)

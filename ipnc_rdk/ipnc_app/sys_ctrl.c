@@ -169,7 +169,7 @@ void showSysInfo()
 	char text[32];
 	
 	//GUIFullScreen(0,25,240,216, RGB(41,40,25));
-	sprintf(text,"version:%s", "1.2");
+	sprintf(text,"version:%s", "1.5");
 	GUIDrawText(8,100,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_NONE);
 	in_addr_t IP_i = net_get_ifaddr("apcli0");
 	sprintf(text,"wlan:%s", inet_ntoa(*((struct in_addr*)&IP_i)));
@@ -214,6 +214,7 @@ int saveJpeg_CallBack(const char *name, char *buf, size_t len)
 		return -1;
 	if(write(fd, buf, len) < 0)
 	{	
+		gSYS_cfg_para.report.errCode = OSA_ENOSPC;
 		return -1;
 	}
 	close(fd);
@@ -312,8 +313,7 @@ void execTaskStateMachine(void *arg)
 	switch(state)
 	{
 		case 0:
-			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);//开启摄像头补光灯
-			ipnc_gio_write(GPIO_HEAT_EN,GPIO_HIGH);
+			start_heat();
 			execHeat();
 			heatCount = 50;
 			gSYS_cfg_para.report.isValid = False;
@@ -323,9 +323,11 @@ void execTaskStateMachine(void *arg)
 			sprintf(text, "%02d", heatCount);
 			heatCount -- ;
 			GUIDrawText(160,169,text, LCD_FONT_BIG, LCD_FILL_WHITE, LCD_FILL_GREEN);
+			if(heatCount == 10)
+				ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_HIGH);//开启摄像头补光灯
 			if(heatCount == 0)
 			{
-				ipnc_gio_write(GPIO_HEAT_EN,GPIO_LOW);//停止加热
+				stop_heat();//停止加热
 				ret = getSysState(sys_net_server_link,NULL);
 				if(ret == True)//网络链接ok
 					state = 2;
@@ -355,20 +357,19 @@ void execTaskStateMachine(void *arg)
 				if(retryCount == 0)//30s后链接不到网络退出
 				{
 					state = 5;
+					gSYS_cfg_para.report.errCode = OSA_ENETUNREACH;
 				}
 			}
 			break;
 		case 4://上传图片获取结果
 			state = 5;
-			usleep(1000000);
 			saveJpeg();
-			usleep(100000);
-			ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
 			break;
 		case 5:
 			start_bp(200,1);
 			if(gSYS_cfg_para.report.isValid)
 			{
+				ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
 				showReport(True);
 			}
 			else
@@ -406,6 +407,7 @@ Bool execTask()
 void ExitTask()
 {
 	start_led(1,1,1);
+	ipnc_gio_write(GPIO_FLASH_LIGTHT_EN,GPIO_LOW);
 	UnRegisterProc(procId);
 	setSysState(Sys_State_Run,MDVR_Sys_IDLE);
 }

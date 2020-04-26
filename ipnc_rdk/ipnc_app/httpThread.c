@@ -18,9 +18,11 @@
 #include <sysCfg.h>
 
 
-
-#define POST_SERVER_URL "http://115.231.64.178:10088/api/predict" 
-#define GET_SERVER_URL "http://115.231.64.178:10088/api/query" 
+//115.231.64.178
+//#define POST_SERVER_URL "http://139.129.90.163:80/api/predict" 
+//#define GET_SERVER_URL "http://139.129.90.163:80/api/query" 
+#define POST_SERVER_URL "http://ij.hiikon.com/api/predict" 
+#define GET_SERVER_URL "http://ij.hiikon.com/api/query" 
 
 
 /***********************************************
@@ -81,6 +83,7 @@ static size_t req_reply(void *ptr, size_t size, size_t nmemb, void *stream)
 			if(pJsonNode)
 				snprintf(imgId,sizeof(imgId)-1,"%s",pJsonNode->valuestring);
 			
+			gSYS_cfg_para.report.isValid = True;
 			LOG_INFO("predict_result =%d %d %s\r\n", gSYS_cfg_para.report.result,gSYS_cfg_para.report.percent,imgId);
 		}
 	}

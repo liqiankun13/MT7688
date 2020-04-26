@@ -83,6 +83,7 @@ typedef struct
 	int  percent;
 	int result;
 	int  isValid;
+	int errCode;
 } Check_report_st;
 
  
